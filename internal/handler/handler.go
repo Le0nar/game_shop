@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/render"
 )
 
 type service interface {
@@ -42,8 +43,20 @@ func NewHandler(s service) *Handler {
 
 func (h *Handler) GetGold(w http.ResponseWriter, r *http.Request) {
 	nickname := r.URL.Query().Get("nickname")
+	if nickname == "" {
+		// TODO: change return value
+		render.JSON(w, r, "nickname query param is missing")
+		return
+	}
 
-	w.Write([]byte(nickname))
+	quantity, err := h.service.GetGold(nickname)
+	if err != nil {
+		// TODO: change return value
+		render.JSON(w, r, err.Error())
+		return
+	}
+
+	render.JSON(w, r, quantity)
 }
 
 // Initialization of router
