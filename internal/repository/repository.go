@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 
+	"github.com/Le0nar/game_shop/internal/user"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -28,6 +29,15 @@ func (r *Repository) CreateUser(nickname string) error {
 	return nil
 }
 
+func (r *Repository) GetUser(id int) (*user.User, error) {
+	var user user.User
+
+	query := fmt.Sprintf("SELECT * FROM %s where id = %d", accountTable, id)
+	err := r.db.Get(&user, query)
+
+	return &user, err
+}
+
 // Add gold to account
 func (r *Repository) AddGold(nickname string, quantity int) error {
 	return nil
@@ -36,9 +46,4 @@ func (r *Repository) AddGold(nickname string, quantity int) error {
 // Buy item, if user have enough gold
 func (r *Repository) BuyItem(itemId string, quantity int) error {
 	return nil
-}
-
-// Get current gold on accound
-func (r *Repository) GetGold(nickname string) (int, error) {
-	return 0, nil
 }

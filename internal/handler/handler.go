@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/Le0nar/game_shop/internal/user"
 	"github.com/go-chi/chi"
@@ -12,10 +13,10 @@ import (
 
 type service interface {
 	CreateUser(nickname string) error
+	GetUser(id int) (*user.User, error)
 	AddGold(nickname string, quantity int) error
 	BuyItem(itemId string, quantity int) error
 	RefundItem(itemId string, quantity int) error
-	GetGold(nickname string) (int, error)
 }
 
 type Handler struct {
@@ -27,7 +28,7 @@ func NewHandler(s service) *Handler {
 }
 
 func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	var user user.UserDTO
+	var user user.CreateUserDTO
 
 	// TODO: add check for empty json
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -45,36 +46,20 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, "")
 }
 
-// func (h *Handler) AddGold(nickname string, quantity int) error {
-// 	return h.service.AddGold(nickname, quantity)
-// }
-
-// func (h *Handler) BuyItem(itemId string, quantity int) error {
-// 	return h.service.BuyItem(itemId, quantity)
-// }
-
-// func (h *Handler) RefundItem(itemId string, quantity int) error {
-// 	// user have 15 minutes for refound item
-// 	return h.service.RefundItem(itemId, quantity)
-// }
-
-func (h *Handler) GetGold(w http.ResponseWriter, r *http.Request) {
-	nickname := r.URL.Query().Get("nickname")
-	if nickname == "" {
-		http.Error(w, "nickname query param is missing", http.StatusBadRequest)
-		return
-	}
-
-	quantity, err := h.service.GetGold(nickname)
+func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
-		// TODO: change return value
-		render.JSON(w, r, err.Error())
+		http.Error(w, "invalid id param", http.StatusBadRequest)
 		return
 	}
 
-	// TODO: return struct with {qunatity: value}
+	user, err := h.service.GetUser(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	render.JSON(w, r, quantity)
+	render.JSON(w, r, *user)
 }
 
 // Initialization of router
@@ -83,7 +68,7 @@ func (h *Handler) InitRouter() http.Handler {
 	router.Use(middleware.Logger)
 
 	router.Post("/user", h.CreateUser)
-	router.Get("/gold", h.GetGold)
+	router.Get("/user", h.GetUser)
 
 	return router
 }

@@ -6,6 +6,6 @@ type User struct {
 	Gold     int    `json:"gold" db:"gold"`
 }
 
-type UserDTO struct {
+type CreateUserDTO struct {
 	Nickname string `json:"nickname"`
 }
