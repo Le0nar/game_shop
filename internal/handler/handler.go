@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 
+	"github.com/Le0nar/game_shop/internal/user"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
@@ -24,9 +26,24 @@ func NewHandler(s service) *Handler {
 	return &Handler{service: s}
 }
 
-// func (h *Handler) CreateUser(nickname string) error {
-// 	return h.service.CreateUser(nickname)
-// }
+func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
+	var user user.UserDTO
+
+	// TODO: add check for empty json
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.CreateUser(user.Nickname)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	render.JSON(w, r, "")
+}
 
 // func (h *Handler) AddGold(nickname string, quantity int) error {
 // 	return h.service.AddGold(nickname, quantity)
@@ -44,8 +61,7 @@ func NewHandler(s service) *Handler {
 func (h *Handler) GetGold(w http.ResponseWriter, r *http.Request) {
 	nickname := r.URL.Query().Get("nickname")
 	if nickname == "" {
-		// TODO: change return value
-		render.JSON(w, r, "nickname query param is missing")
+		http.Error(w, "nickname query param is missing", http.StatusBadRequest)
 		return
 	}
 
@@ -65,7 +81,9 @@ func (h *Handler) GetGold(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) InitRouter() http.Handler {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
-	router.Get("/get-gold", h.GetGold)
+
+	router.Post("/user", h.CreateUser)
+	router.Get("/gold", h.GetGold)
 
 	return router
 }
