@@ -56,6 +56,8 @@ func (h *Handler) GetGold(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: return struct with {qunatity: value}
+
 	render.JSON(w, r, quantity)
 }
 

@@ -1,13 +1,13 @@
 package repository
 
+import "github.com/jmoiron/sqlx"
+
 type Repository struct {
-	// db *sqlx.DB
+	db *sqlx.DB
 }
 
-func NewRepository() *Repository {
-	// func NewRepository(db *sqlx.DB) *Repository {
-	// return &Repository{db: db}
-	return &Repository{}
+func NewRepository(db *sqlx.DB) *Repository {
+	return &Repository{db: db}
 }
 
 // Create a user with unic nickname
