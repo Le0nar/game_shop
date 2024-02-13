@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Le0nar/game_shop/internal/item"
 	"github.com/Le0nar/game_shop/internal/user"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -17,9 +18,7 @@ type service interface {
 
 	AddGold(id int, quantity int) error
 
-	// TODO: add user id for methods
-	BuyItem(itemId string, quantity int) error
-	RefundItem(itemId string, quantity int) error
+	BuyItem(userId, itemId int) error
 }
 
 type Handler struct {
@@ -84,6 +83,25 @@ func (h *Handler) AddGold(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, "")
 }
 
+func (h *Handler) BuyItem(w http.ResponseWriter, r *http.Request) {
+	var dto item.BuyItemDTO
+
+	// TODO: add check for empty json
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.BuyItem(dto.UserId, dto.ItemId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	render.JSON(w, r, "")
+}
+
 // Initialization of router
 func (h *Handler) InitRouter() http.Handler {
 	router := chi.NewRouter()
@@ -93,6 +111,8 @@ func (h *Handler) InitRouter() http.Handler {
 	router.Get("/user", h.GetUser)
 
 	router.Patch("/gold", h.AddGold)
+
+	router.Post("/item", h.BuyItem)
 
 	return router
 }
