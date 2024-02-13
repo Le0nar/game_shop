@@ -39,8 +39,12 @@ func (r *Repository) GetUser(id int) (*user.User, error) {
 }
 
 // Add gold to account
-func (r *Repository) AddGold(nickname string, quantity int) error {
-	return nil
+func (r *Repository) AddGold(id int, quantity int) error {
+	query := fmt.Sprintf("UPDATE %s SET gold = gold + %d WHERE id = %d", accountTable, quantity, id)
+
+	_, err := r.db.Exec(query)
+
+	return err
 }
 
 // Buy item, if user have enough gold

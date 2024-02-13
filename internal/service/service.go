@@ -5,7 +5,7 @@ import "github.com/Le0nar/game_shop/internal/user"
 type repository interface {
 	CreateUser(nickname string) error
 	GetUser(id int) (*user.User, error)
-	AddGold(nickname string, quantity int) error
+	AddGold(id int, quantity int) error
 	BuyItem(itemId string, quantity int) error
 }
 
@@ -25,8 +25,8 @@ func (s *Serivce) GetUser(id int) (*user.User, error) {
 	return s.repository.GetUser(id)
 }
 
-func (s *Serivce) AddGold(nickname string, quantity int) error {
-	return s.repository.AddGold(nickname, quantity)
+func (s *Serivce) AddGold(id int, quantity int) error {
+	return s.repository.AddGold(id, quantity)
 }
 
 func (s *Serivce) BuyItem(itemId string, quantity int) error {
@@ -34,6 +34,5 @@ func (s *Serivce) BuyItem(itemId string, quantity int) error {
 }
 
 func (s *Serivce) RefundItem(itemId string, quantity int) error {
-	// user have 15 minutes for refound item
-	return s.repository.AddGold(itemId, quantity)
+	return nil
 }

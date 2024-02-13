@@ -14,7 +14,10 @@ import (
 type service interface {
 	CreateUser(nickname string) error
 	GetUser(id int) (*user.User, error)
-	AddGold(nickname string, quantity int) error
+
+	AddGold(id int, quantity int) error
+
+	// TODO: add user id for methods
 	BuyItem(itemId string, quantity int) error
 	RefundItem(itemId string, quantity int) error
 }
@@ -28,16 +31,16 @@ func NewHandler(s service) *Handler {
 }
 
 func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	var user user.CreateUserDTO
+	var dto user.CreateUserDTO
 
 	// TODO: add check for empty json
-	err := json.NewDecoder(r.Body).Decode(&user)
+	err := json.NewDecoder(r.Body).Decode(&dto)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = h.service.CreateUser(user.Nickname)
+	err = h.service.CreateUser(dto.Nickname)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -62,6 +65,25 @@ func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, *user)
 }
 
+func (h *Handler) AddGold(w http.ResponseWriter, r *http.Request) {
+	var dto user.AddGoldDTO
+
+	// TODO: add check for empty json
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.AddGold(dto.Id, dto.Gold)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	render.JSON(w, r, "")
+}
+
 // Initialization of router
 func (h *Handler) InitRouter() http.Handler {
 	router := chi.NewRouter()
@@ -69,6 +91,8 @@ func (h *Handler) InitRouter() http.Handler {
 
 	router.Post("/user", h.CreateUser)
 	router.Get("/user", h.GetUser)
+
+	router.Patch("/gold", h.AddGold)
 
 	return router
 }
